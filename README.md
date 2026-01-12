@@ -26,6 +26,14 @@ $ docker network create app-network
 
 $ docker compose up -d
 ```
+## To create migration file
+```bash
+$ npm run migration:create <relative_path_to_migrations_dir>/<migration_file_name>
+```
+## To run migrations
+```bash
+$ npm run migration:run
+```
 
 ## To run the project 
 ```bash
