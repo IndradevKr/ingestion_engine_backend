@@ -20,6 +20,13 @@ Install the project dependencies:
 $ npm install
 ```
 
+## Run docker containers: postgresdb and redisdb, Go to root dir and run 
+```bash
+$ docker network create app-network
+
+$ docker compose up -d
+```
+
 ## To run the project 
 ```bash
 $ npm run start:dev
