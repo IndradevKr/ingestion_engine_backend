@@ -1,0 +1,23 @@
+import { Injectable } from "@nestjs/common";
+import { IContactsRepository } from "../types/contacts.repository";
+import { Contacts } from "../entities/contacts.entitiy";
+import { Repository } from "typeorm";
+import { InjectRepository } from "@nestjs/typeorm";
+import { CreateContactsRequest } from "../commands/requests/create-contacts.request";
+import { ContactPayload, CreateContactsCommand } from "../commands/create-contacts.command";
+
+@Injectable()
+export class ContactsRepository implements IContactsRepository {
+    constructor(
+        @InjectRepository(Contacts)
+        private contactsRepository: Repository<Contacts>
+    ) { }
+
+    create(data: CreateContactsRequest[]) {
+        return this.contactsRepository.save(data);
+    }
+
+    findAll(): Promise<Contacts[] | null> {
+        return this.contactsRepository.find();
+    }
+}

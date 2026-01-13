@@ -1,0 +1,71 @@
+services:
+  postgresdb:
+    image: postgres:16-alpine
+    container_name: postgresdb
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_DB=${DB_DATABASE_NAME}
+    ports:
+      - "5436:5432"
+    volumes:
+      - dbData:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+  redisdb: 
+    image: redis:8.4.0-alpine
+    container_name: redisdb
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redis-pwd-docker
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisData:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  dbData:
+    driver: local
+  redisData:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
