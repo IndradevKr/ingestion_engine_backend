@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './datasource';
+import { Contacts } from 'src/contacts/entities/contacts.entitiy';
 
 @Module({
     imports: [
@@ -10,7 +11,7 @@ import { dataSourceOptions } from './datasource';
         }),
         TypeOrmModule.forRoot({
             ...dataSourceOptions,
-            entities: []
+            entities: [Contacts]
         })
     ]
 })

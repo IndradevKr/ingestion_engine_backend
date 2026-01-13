@@ -53,24 +53,27 @@ export class CreateContactsTable1768210423692 implements MigrationInterface {
                     default: false
                 },
                 {
-                    name: 'education_backgrounds',
-                    type: 'jsonb',
-                    isNullable: true
-                },
-                {
-                    name: 'professional_experience',
-                    type: 'jsonb',
-                    isNullable: true
-                },
-                {
                     name: 'application_summary',
                     type: 'jsonb',
                     isNullable: true
                 },
                 {
-                    name: 'language_test_score',
+                    name: 'education_backgrounds',
                     type: 'jsonb',
-                    isNullable: true
+                    isNullable: true,
+                    default: "'[]'::jsonb"
+                },
+                {
+                    name: 'professional_experiences',
+                    type: 'jsonb',
+                    isNullable: true,
+                    default: "'[]'::jsonb"
+                },
+                {
+                    name: 'language_test_scores',
+                    type: 'jsonb',
+                    isNullable: true,
+                    default: "'[]'::jsonb" 
                 },
                 {
                     name: 'created_at',

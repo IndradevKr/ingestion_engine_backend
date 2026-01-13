@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { config } from 'dotenv';
+import { SnakeCaseNamingStrategy } from 'src/contacts/core/utils/snake-case-naming-strategy';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
 config();
@@ -20,6 +21,7 @@ export const dataSourceOptions: DataSourceOptions = {
     migrationsRun: false,
     synchronize: false,
     logging: false,
+    namingStrategy: new SnakeCaseNamingStrategy(),
     extra: {
         connectionLimit: 10,
     }
