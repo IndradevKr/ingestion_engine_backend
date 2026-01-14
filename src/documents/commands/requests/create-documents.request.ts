@@ -1,5 +1,5 @@
 import { IsString, IsEnum, IsNumber, IsOptional, IsUUID, MaxLength, Min, IsBoolean } from 'class-validator';
-import { DocumentStatus } from '../entities/documents.entity';
+import { DocumentStatus } from 'src/documents/entities/documents.entity';
 
 export class CreateDocumentRequest {
   @IsString()

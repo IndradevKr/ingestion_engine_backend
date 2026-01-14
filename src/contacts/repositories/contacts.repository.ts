@@ -4,7 +4,6 @@ import { Contacts } from "../entities/contacts.entitiy";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CreateContactsRequest } from "../commands/requests/create-contacts.request";
-import { ContactPayload, CreateContactsCommand } from "../commands/create-contacts.command";
 
 @Injectable()
 export class ContactsRepository implements IContactsRepository {

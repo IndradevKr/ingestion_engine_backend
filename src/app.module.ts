@@ -9,6 +9,7 @@ import { QueuesModule } from './queues/queues.module';
 import { DocumentsModule } from './documents/documents.module';
 import { MulterError } from 'multer';
 import { MulterModule } from '@nestjs/platform-express';
+import { UploadModule } from './upload/upload.module';
 
 
 @Module({
@@ -22,9 +23,11 @@ import { MulterModule } from '@nestjs/platform-express';
     }),
     QueuesModule,
     MulterModule,
+    UploadModule,
     ContactsModule,
     DatabaseModule,
-    DocumentsModule
+    DocumentsModule,
+    UploadModule
   ],
   controllers: [],
   providers: [],

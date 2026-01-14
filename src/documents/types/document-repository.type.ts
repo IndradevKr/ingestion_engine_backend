@@ -1,4 +1,4 @@
-import { CreateDocumentRequest } from "../commands/create-documents.request";
+import { CreateDocumentRequest } from "../commands/requests/create-documents.request";
 import { Documents } from "../entities/documents.entity";
 
 export interface IDocumentsRepository {

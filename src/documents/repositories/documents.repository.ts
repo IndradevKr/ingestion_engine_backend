@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Documents } from "../entities/documents.entity";
 import { IDocumentsRepository } from "../types/document-repository.type";
 import { Repository } from "typeorm";
-import { CreateDocumentRequest } from "../commands/create-documents.request";
+import { CreateDocumentRequest } from "../commands/requests/create-documents.request";
 
 @Injectable()
 export class DocumentsRepository implements IDocumentsRepository {
