@@ -4,7 +4,7 @@ import { UploadModule } from 'src/upload/upload.module';
 import { UploadService } from 'src/upload/upload.service';
 import { DocumentsRepository } from './repositories/documents.repository';
 import { DocumentsCommandHandlers } from './commands/handlers';
-import { DocumentsQueriesHandlers } from './queries';
+import { DocumentsQueriesHandlers } from './queries/handlers';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Documents } from './entities/documents.entity';
 

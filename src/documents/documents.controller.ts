@@ -1,9 +1,10 @@
-import { BadRequestException, Body, Controller, FileTypeValidator, ParseFilePipe, Post, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, FileTypeValidator, Get, Param, ParseFilePipe, Post, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { UploadService } from 'src/upload/upload.service';
 import { DocumentStatus } from './entities/documents.entity';
 import { CreateDocumentsCommand } from './commands/create-documents.command';
+import { FindDocumentsByContactId } from './queries/find-document-by-contactId.query';
 
 @Controller('documents')
 export class DocumentsController {
@@ -46,4 +47,8 @@ export class DocumentsController {
         );
     }
 
+    @Get(':contactId')
+    async fetchDocumentsByContactId(@Param(':contactId') contactId: string) {
+        return await this.queryBus.execute(new FindDocumentsByContactId(contactId))
+    }
 }

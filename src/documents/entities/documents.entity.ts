@@ -73,4 +73,7 @@ export class Documents {
 
     @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
     updatedAt: Date;
+
+    @IsOptional()
+    signedUrl?: string;
 }
