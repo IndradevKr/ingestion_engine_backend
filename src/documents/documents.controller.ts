@@ -10,7 +10,7 @@ import { FindDocumentsByContactId } from './queries/find-document-by-contactId.q
 export class DocumentsController {
     constructor(private readonly uploadService: UploadService,
         private readonly commandBus: CommandBus,
-        private readonly queryBus: QueryBus
+        private readonly queryBus: QueryBus,
     ) { }
 
     @Post('parse')
