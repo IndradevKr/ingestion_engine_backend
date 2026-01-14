@@ -6,9 +6,10 @@ import { ContactsRepository } from './repositories/contacts.repository';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Contacts } from './entities/contacts.entitiy';
+import { QueuesModule } from 'src/queues/queues.module';
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature([Contacts])],
+  imports: [CqrsModule, TypeOrmModule.forFeature([Contacts]), QueuesModule],
   controllers: [ContactsController],
   providers: [
     ContactsRepository,

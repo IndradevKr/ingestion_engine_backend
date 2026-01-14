@@ -6,12 +6,15 @@ import { Contacts } from "src/contacts/entities/contacts.entitiy";
 import { Repository } from "typeorm";
 import { CreateContactsRequest } from "../requests/create-contacts.request";
 import { ContactsRepository } from "src/contacts/repositories/contacts.repository";
+import { InjectQueue } from "@nestjs/bullmq";
+import { QUEUES } from "src/queues/queues.constant";
+import { Queue } from "bullmq";
 
 @Injectable()
 @CommandHandler(CreateContactsCommand)
 export class CreateContactsHandler implements ICommandHandler<CreateContactsCommand> {
     constructor(
-        private readonly contactsRepository: ContactsRepository
+        private readonly contactsRepository: ContactsRepository,
     ){}
 
     async execute(command: CreateContactsCommand): Promise<any> {
