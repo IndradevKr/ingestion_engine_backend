@@ -1,0 +1,8 @@
+import { CreateDocumentRequest } from "../commands/create-documents.request";
+import { Documents } from "../entities/documents.entity";
+
+export interface IDocumentsRepository {
+    create(data: CreateDocumentRequest[]);
+    findAll(): Promise<Documents[] | null>;
+    findOneByContactId(contactId: string): Promise<Documents[] | null>;
+}

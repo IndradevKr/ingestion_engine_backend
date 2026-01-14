@@ -6,6 +6,9 @@ import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { redisConfig } from './config/redis.config';
 import { QueuesModule } from './queues/queues.module';
+import { DocumentsModule } from './documents/documents.module';
+import { MulterError } from 'multer';
+import { MulterModule } from '@nestjs/platform-express';
 
 
 @Module({
@@ -18,8 +21,10 @@ import { QueuesModule } from './queues/queues.module';
       connection: redisConfig
     }),
     QueuesModule,
+    MulterModule,
     ContactsModule,
-    DatabaseModule
+    DatabaseModule,
+    DocumentsModule
   ],
   controllers: [],
   providers: [],
