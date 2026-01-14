@@ -7,6 +7,8 @@ import { DocumentsCommandHandlers } from './commands/handlers';
 import { DocumentsQueriesHandlers } from './queries/handlers';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Documents } from './entities/documents.entity';
+import { GeminiService } from './services/gemini.service';
+import { DocumentService } from './services/document.service';
 
 @Module({
   imports: [UploadModule, TypeOrmModule.forFeature([Documents])],
@@ -14,6 +16,8 @@ import { Documents } from './entities/documents.entity';
   providers: [
     UploadService,
     DocumentsRepository,
+    GeminiService,
+    DocumentService,
     ...DocumentsCommandHandlers,
     ...DocumentsQueriesHandlers,
   ]
