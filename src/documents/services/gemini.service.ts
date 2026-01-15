@@ -25,7 +25,7 @@ export class GeminiService {
     async generateResponse(prompt: string): Promise<string | undefined> {
         try {
             const result = await this.ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model: "gemini-3-flash-preview",
                 contents: prompt
             });
             return result.text;
@@ -59,84 +59,93 @@ export class GeminiService {
     //     }
     // }
 
-    // async processFile(fileBuffer: Buffer, mimeType: string): Promise<any> {
-    //     if (!fileBuffer) {
-    //         throw new Error('No file buffer provided');
-    //     }
-
-    //     try {
-    //         if (mimeType.startsWith('image')) {
-    //             return await this.processImage(fileBuffer, mimeType);
-    //         } else if (mimeType === 'application/pdf') {
-    //             return await this.processPdfFile(fileBuffer, mimeType);
-    //         } else {
-    //             throw new Error(`Unsupported MIME type: ${mimeType}`);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error processing file:', error);
-    //         throw error;
-    //     }
-    // }
-
-    // async processImage(imageBuffer: Buffer, mimeType: string): Promise<any> {
-    //     console.log('Processing image buffer');
-    //     const text = imageBuffer.toString();
-    //     return await this.getJsonOutput(text);
-    // }
-
     async processFile(fileBuffer: Buffer, mimeType: string): Promise<any> {
-        console.log('Processing PDF buffer');
-   // Create a temporary file path
-            const tempFilePath = os.tmpdir() + '/gemini-' + Date.now().toString();
-            console.log('Temporary file path:', tempFilePath);
+        console.log('Processing document with Gemini AI');
 
-            // Write the buffer to the temporary file asynchronously
-            await new Promise((resolve, reject) => {
-                fs.writeFile(tempFilePath, fileBuffer, (err) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve('file created');
-                    }
-                });
+        // Create a temporary file path
+        const tempFilePath = os.tmpdir() + '/gemini-' + Date.now().toString();
+        console.log('Temporary file path:', tempFilePath);
+
+        // Write the buffer to the temporary file asynchronously
+        await new Promise((resolve, reject) => {
+            fs.writeFile(tempFilePath, fileBuffer, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve('file created');
+                }
             });
+        });
 
-            console.log('File written to temporary location');
+        console.log('File written to temporary location');
 
         try {
-            const prompt = 'What type of document is this?';
+            // Enhanced prompt for education CRM document classification
+            const prompt = `You are a document classifier for an education CRM system used by education counselors.
+                VALID DOCUMENT TYPES for this system:
+                1. "resume" - Student CV/Resume with education and work experience
+                2. "transcript" - Academic transcripts, marksheets, grade reports
+                3. "coe" - Certificate of Enrollment from current/previous institution
+                4. "test_score" - Standardized test scores (IELTS, TOEFL, GRE, GMAT, SAT, etc.)
+                5. "passport" - Passport or government-issued ID
+                6. "financial_document" - Bank statements, financial aid documents
+                7. "irrelevant" - Document is not relevant to the education CRM system
 
+
+                Analyze this document and respond with ONLY valid JSON (no markdown, no code blocks):
+                {
+                "documentType": "resume|transcript|coe|test_score|financial_document|irrelevant",
+                "confidence": 0.95,
+                "isRelevant": true,
+                "reason": "Brief explanation of classification"
+                }
+
+                IMPORTANT:
+                - If the document is NOT one of the valid types above, set documentType to "irrelevant" and isRelevant to false
+                - If you cannot determine the type with reasonable confidence, set documentType to "irrelevant"
+                - Respond with ONLY the JSON object, no additional text`;
 
             const uploadedFile = await this.ai.files.upload({
                 file: tempFilePath,
                 config: { mimeType: mimeType }
-            })
+            });
 
             if (!uploadedFile.uri || !uploadedFile.mimeType) {
                 console.error('Uploaded file does not have a valid URI or mimetype:', uploadedFile);
                 throw new Error('Failed to upload file');
             }
 
-
             const response = await this.ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: 'gemini-2.5-flash',
                 contents: createUserContent([
                     createPartFromUri(uploadedFile.uri, uploadedFile.mimeType),
                     prompt
-                ])
+                ]),
+                config: {
+                    responseMimeType: 'application/json'
+                }
             });
 
-            console.log("response from upload", response)
-            return response.text;
+            console.log("Gemini response:", response.text);
 
-            // const text = pdfBuffer.toString();
-            // return await this.getJsonOutput(text);
+            if (!response.text) {
+                throw new Error('Gemini returned empty response');
+            }
+
+            // Parse and validate the JSON response
+            const classification = JSON.parse(response.text);
+
+            return classification;
+
         } catch (error) {
-            console.error('Error processing text:', error);
+            console.error('Error processing document with Gemini:', error);
             throw error;
         } finally {
-            fs.unlinkSync(tempFilePath);
-            console.log('Temporary file cleaned up');
+            // Clean up temporary file
+            if (fs.existsSync(tempFilePath)) {
+                fs.unlinkSync(tempFilePath);
+                console.log('Temporary file cleaned up');
+            }
         }
     }
 }
