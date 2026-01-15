@@ -89,7 +89,7 @@ export class DocumentsController {
     }
 
     @Get(':contactId')
-    async fetchDocumentsByContactId(@Param(':contactId') contactId: string) {
+    async fetchDocumentsByContactId(@Param('contactId') contactId: string) {
         return await this.queryBus.execute(new FindDocumentsByContactId(contactId))
     }
 }
