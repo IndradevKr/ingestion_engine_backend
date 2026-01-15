@@ -8,7 +8,7 @@ import { DocumentService } from 'src/documents/services/document.service';
 import { UpdateDocumentClassificationCommand } from 'src/documents/commands/update-document-classification.command';
 import { DocumentStatus } from 'src/documents/entities/documents.entity';
 import { UploadService } from 'src/upload/upload.service';
-import { CONTACT_INGESTION_SCHEMA } from '../../documents/constants/contact-ingestion.schema';
+import { BASIC_INFO_SCHEMA, EXPERIENCE_EDUCATION_SCHEMA, TEST_SCORES_SCHEMA, APPLICATION_SUMMAARY_SCHEMA } from '../../documents/constants/contact-ingestion.schema';
 
 interface ClassifyDocumentJobData {
     documentId: string;
@@ -55,22 +55,60 @@ export class DocumentClassificationProcessor extends WorkerHost {
                 processedAt: new Date().toISOString()
             };
 
+            console.log("docTypes: ", docType)
+
             // 2. If it's a relevant education document, perform extraction
             const extractableTypes = ['resume', 'transcript', 'test_score', 'certificate_of_enrollment'];
             if (extractableTypes.includes(docType.toLowerCase())) {
                 this.logger.log(`📄 Extracting structured data for ${docType}: ${originalName}`);
                 try {
-                    const extracted = await this.geminiService.extractDocumentData(
+                    // Phase 1: Basic Info
+                    this.logger.log(`🔍 Phase 1: Extracting basic information`);
+                    const basicInfo = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
-                        CONTACT_INGESTION_SCHEMA
+                        BASIC_INFO_SCHEMA
                     );
-                    extractedData = extracted;
+
+                    // Phase 2: Experience & Education
+                    this.logger.log(`🔍 Phase 2: Extracting experience and education`);
+                    const experienceEducation = await this.geminiService.extractDocumentData(
+                        fileBuffer,
+                        mimeType,
+                        EXPERIENCE_EDUCATION_SCHEMA
+                    );
+
+                    // Phase 3: Test Scores
+                    this.logger.log(`🔍 Phase 3: Extracting test scores`);
+                    const testScores = await this.geminiService.extractDocumentData(
+                        fileBuffer,
+                        mimeType,
+                        TEST_SCORES_SCHEMA
+                    );
+
+                    this.logger.log(`🔍 Phase 4: Extracting application summary`);
+                    const applicationSummary = await this.geminiService.extractDocumentData(
+                        fileBuffer,
+                        mimeType,
+                        APPLICATION_SUMMAARY_SCHEMA
+                    );
+
+                    // Merge results
+                    extractedData = {
+                        ...basicInfo,
+                        ...experienceEducation,
+                        ...testScores,
+                        ...applicationSummary,
+                        classification,
+                        processedAt: new Date().toISOString()
+                    };
+
                     this.logger.log(`✅ Extraction successful for ${originalName}`);
                 } catch (extractError) {
                     this.logger.warn(`⚠️ Extraction failed for ${originalName} (classification preserved): ${extractError.message}`);
                 }
             }
+            console.log("extractedData: ", extractedData)
 
             // Update document in database
             await this.commandBus.execute(new UpdateDocumentClassificationCommand({
@@ -100,7 +138,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
                 }
             }));
 
-            throw error; // Re-throw for BullMQ retry mechanism
+            throw error;
         }
     }
 }

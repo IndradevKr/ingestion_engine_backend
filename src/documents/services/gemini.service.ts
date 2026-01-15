@@ -155,11 +155,11 @@ export class GeminiService {
 
                 IMPORTANT GUIDELINES:
                 1. Extract names, contact details, work experience, education history, and test scores.
-                2. For every field, provided a confidence score (0.0 to 1.0) and a bounding box (ymin, xmin, ymax, xmax) where the data was found.
+                2. For every field, provide a confidence score (0.0 to 1.0) and a bbox as an array [ymin, xmin, ymax, xmax, page].
                 3. Bounding boxes should be normalized (0 to 1000) based on page coordinates.
                 4. If a piece of information is missing, do not include it in the JSON.
-                5. Ensure all dates are in YYYY-MM-DD format.
-                6. Focus on extreme accuracy for GPA and Test Scores.
+                6. Ensure all dates are in YYYY-MM-DD format. If the date is not present, do not include it in the JSON.
+                7. Focus on extreme accuracy for GPA and Test Scores.
 
                 Non-negotiable constraints:
                     - Do NOT hallucinate or fabricate any data.
@@ -170,21 +170,14 @@ export class GeminiService {
 
                 General extraction rules:
                     - Omit fields that are not clearly present.
-                    - Every extracted field must include value, confidence, and boundingbox.
-                    - boundingbox must tightly match the detected text and correct page.
+                    - Every extracted field must include value, confidence, and bbox.
+                    - bbox must tightly match the detected text and correct page.
                     - Do not create empty objects or empty arrays.
-                
-                Confidence scoring:
-                    - 1.0 = clearly labeled and unambiguous
-                    - 0.7–0.9 = strong match
-                    - 0.4–0.6 = partial or weak inference
-                    - below 0.4 = highly uncertain
 
                 Address rules:
                     - If full address appears as a single line, extract it into addressLineOne.
-                    - If individual parts (street, city, state, postal code, country) are clearly detectable, also extract them into address object.
+                    - Extract individual parts (city, country) into their respective top-level fields if detectable.
                     - Do not invent missing address parts.
-                    - If no address is detectable, do not include addressLineOne or address object.
 
                 Name extraction rules:
                     - If a full name is present, split into firstName and lastName.
@@ -198,9 +191,8 @@ export class GeminiService {
                 
                 Date rules:
                     - All dates must be normalized to format YYYY-MM-DD.
-                    - If only month and year are present, use YYYY-MM and omit day.
-                    - If only year is present, use YYYY.
-                    - Do not invent missing day or month values.
+                    - If day is missing, use 01.
+                    - If month is missing, use 01.
                     - If date cannot be confidently parsed, omit the field.
                 
                 Success criteria:
