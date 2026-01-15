@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import s3config from 'src/config/s3.config';
 
 @Injectable()
@@ -49,5 +49,27 @@ export class UploadService {
 
     const signedUrl = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
     return signedUrl;
+  }
+
+  async downloadFile(s3Path: string): Promise<Buffer> {
+    const command = new GetObjectCommand({
+      Bucket: s3config.awsBucketName,
+      Key: s3Path
+    });
+
+    try {
+      const response = await this.s3Client.send(command);
+
+      // Convert stream to buffer
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of response.Body as any) {
+        chunks.push(chunk);
+      }
+
+      return Buffer.concat(chunks);
+    } catch (error) {
+      console.error('S3 Download Error:', error);
+      throw new InternalServerErrorException(`Failed to download file from S3: ${s3Path}`);
+    }
   }
 }

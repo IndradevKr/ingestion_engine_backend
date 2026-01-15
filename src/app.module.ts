@@ -21,13 +21,13 @@ import { UploadModule } from './upload/upload.module';
     BullModule.forRoot({
       connection: redisConfig
     }),
-    QueuesModule,
     MulterModule,
     UploadModule,
     ContactsModule,
     DatabaseModule,
     DocumentsModule,
-    UploadModule
+    UploadModule,
+    QueuesModule
   ],
   controllers: [],
   providers: [],
