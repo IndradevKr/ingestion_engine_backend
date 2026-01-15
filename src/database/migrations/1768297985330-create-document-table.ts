@@ -39,6 +39,7 @@ export class CreateDocumentTable1768297985330 implements MigrationInterface {
                 {
                     name: 'status',
                     type: 'enum',
+                    enumName: 'document_status_enum',
                     enum: ['processing', 'uploaded', 'skipped', 'parsed', 'failed'],
                     default: "'processing'",
                     isNullable: false
@@ -89,6 +90,7 @@ export class CreateDocumentTable1768297985330 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.dropForeignKey('documents', 'FK_documents_contact');
         await queryRunner.dropTable('documents')
+        await queryRunner.query(`DROP TYPE IF EXISTS document_status_enum;`)
     }
 
 }
