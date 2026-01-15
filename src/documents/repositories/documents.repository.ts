@@ -37,4 +37,9 @@ export class DocumentsRepository implements IDocumentsRepository {
         const dataWithSignedUrl = await Promise.all(promises);
         return dataWithSignedUrl;
     }
+
+    async update(documentId: string, updateData: Partial<Documents>): Promise<Documents | null> {
+        await this.documentsRepository.update(documentId, updateData);
+        return this.documentsRepository.findOne({ where: { id: documentId } });
+    }
 }
