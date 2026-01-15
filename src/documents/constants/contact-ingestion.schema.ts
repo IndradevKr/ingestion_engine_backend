@@ -127,3 +127,15 @@ export const APPLICATION_SUMMAARY_SCHEMA = {
 }
 // For backward compatibility if needed elsewhere, though we should migrate
 export const CONTACT_INGESTION_SCHEMA = BASIC_INFO_SCHEMA;
+
+export const MASTER_EXTRACTION_SCHEMA = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        ...BASIC_INFO_SCHEMA.properties,
+        ...EXPERIENCE_EDUCATION_SCHEMA.properties,
+        ...TEST_SCORES_SCHEMA.properties,
+        ...APPLICATION_SUMMAARY_SCHEMA.properties
+    },
+    "definitions": SHARED_DEFINITIONS
+}
