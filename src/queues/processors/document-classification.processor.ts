@@ -8,7 +8,7 @@ import { DocumentService } from 'src/documents/services/document.service';
 import { UpdateDocumentClassificationCommand } from 'src/documents/commands/update-document-classification.command';
 import { DocumentStatus } from 'src/documents/entities/documents.entity';
 import { UploadService } from 'src/upload/upload.service';
-import { BASIC_INFO_SCHEMA, EXPERIENCE_EDUCATION_SCHEMA, TEST_SCORES_SCHEMA, APPLICATION_SUMMAARY_SCHEMA } from '../../documents/constants/contact-ingestion.schema';
+import { MASTER_EXTRACTION_SCHEMA } from '../../documents/constants/contact-ingestion.schema';
 import { LiveUpdatesGateway } from 'src/notifications/gateways/live-updates.gateway';
 
 interface ClassifyDocumentJobData {
@@ -65,46 +65,18 @@ export class DocumentClassificationProcessor extends WorkerHost {
             if (extractableTypes.includes(docType.toLowerCase())) {
                 this.logger.log(`📄 Extracting structured data for ${docType}: ${originalName}`);
                 try {
-                    // Phase 1: Basic Info
-                    this.logger.log(`🔍 Phase 1: Extracting basic information`);
-                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 1, totalPhases: 4 });
-                    const basicInfo = await this.geminiService.extractDocumentData(
+                    // Single Phase Extraction
+                    this.logger.log(`🔍 Phase 2: Extracting all structured data`);
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 1, totalPhases: 1 });
+
+                    const masterData = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
-                        BASIC_INFO_SCHEMA
+                        MASTER_EXTRACTION_SCHEMA
                     );
 
-                    // Phase 2: Experience & Education
-                    this.logger.log(`🔍 Phase 2: Extracting experience and education`);
-                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 2, totalPhases: 4 });
-                    const experienceEducation = await this.geminiService.extractDocumentData(
-                        fileBuffer,
-                        mimeType,
-                        EXPERIENCE_EDUCATION_SCHEMA
-                    );
-
-                    // Phase 3: Test Scores
-                    this.logger.log(`🔍 Phase 3: Extracting test scores`);
-                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 3, totalPhases: 4 });
-                    const testScores = await this.geminiService.extractDocumentData(
-                        fileBuffer,
-                        mimeType,
-                        TEST_SCORES_SCHEMA
-                    );
-
-                    this.logger.log(`🔍 Phase 4: Extracting application summary`);
-                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 4, totalPhases: 4 });
-                    const applicationSummary = await this.geminiService.extractDocumentData(
-                        fileBuffer,
-                        mimeType,
-                        APPLICATION_SUMMAARY_SCHEMA
-                    );
-                    // Merge results
                     extractedData = {
-                        ...basicInfo,
-                        ...experienceEducation,
-                        ...testScores,
-                        ...applicationSummary,
+                        ...masterData,
                         classification,
                         processedAt: new Date().toISOString()
                     };
