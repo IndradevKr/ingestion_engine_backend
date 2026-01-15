@@ -13,6 +13,7 @@ import { LiveUpdatesGateway } from 'src/notifications/gateways/live-updates.gate
 
 interface ClassifyDocumentJobData {
     documentId: string;
+    contactId: string;
     s3Path: string;
     mimeType: string;
     originalName: string;
@@ -33,11 +34,11 @@ export class DocumentClassificationProcessor extends WorkerHost {
     }
 
     async process(job: Job<ClassifyDocumentJobData>): Promise<any> {
-        const { documentId, s3Path, mimeType, originalName } = job.data;
+        const { documentId, s3Path, mimeType, originalName, contactId } = job.data;
 
         this.logger.log(`🔄 Processing document: ${originalName} (Job ${job.id})`);
 
-        this.liveUpdatesGateway.emitDocumentStatus(documentId, 'processing', { originalName });
+        this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'processing', { originalName });
 
         try {
             // Download file from S3
@@ -66,7 +67,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
                 try {
                     // Phase 1: Basic Info
                     this.logger.log(`🔍 Phase 1: Extracting basic information`);
-                    this.liveUpdatesGateway.emitDocumentStatus(documentId, 'extracting', { phase: 1, totalPhases: 4 });
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 1, totalPhases: 4 });
                     const basicInfo = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
@@ -75,7 +76,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
 
                     // Phase 2: Experience & Education
                     this.logger.log(`🔍 Phase 2: Extracting experience and education`);
-                    this.liveUpdatesGateway.emitDocumentStatus(documentId, 'extracting', { phase: 2, totalPhases: 4 });
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 2, totalPhases: 4 });
                     const experienceEducation = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
@@ -84,7 +85,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
 
                     // Phase 3: Test Scores
                     this.logger.log(`🔍 Phase 3: Extracting test scores`);
-                    this.liveUpdatesGateway.emitDocumentStatus(documentId, 'extracting', { phase: 3, totalPhases: 4 });
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 3, totalPhases: 4 });
                     const testScores = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
@@ -92,7 +93,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
                     );
 
                     this.logger.log(`🔍 Phase 4: Extracting application summary`);
-                    this.liveUpdatesGateway.emitDocumentStatus(documentId, 'extracting', { phase: 4, totalPhases: 4 });
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'extracting', { phase: 4, totalPhases: 4 });
                     const applicationSummary = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
@@ -122,9 +123,8 @@ export class DocumentClassificationProcessor extends WorkerHost {
                 extractedData
             }));
 
-            this.liveUpdatesGateway.emitDocumentStatus(documentId, 'parsed', {
-                docType,
-                extractedData
+            this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, 'parsed', {
+                docType
             });
 
             this.logger.log(`✅ Processed ${originalName} as ${docType}`);
@@ -159,7 +159,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
                 if (isRejection) return { documentId, status: 'error_updating_status', error: error.message };
             }
 
-            this.liveUpdatesGateway.emitDocumentStatus(documentId, liveStatus, { error: error.message });
+            this.liveUpdatesGateway.emitDocumentStatus(documentId, contactId, liveStatus, { error: error.message });
 
             if (isRejection) {
                 this.logger.log(`🛑 Rejection handled, job complete.`);

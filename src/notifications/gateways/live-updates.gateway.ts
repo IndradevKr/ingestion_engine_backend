@@ -26,9 +26,10 @@ export class LiveUpdatesGateway implements OnGatewayConnection, OnGatewayDisconn
         this.logger.log(`Client disconnected: ${client.id}`);
     }
 
-    emitDocumentStatus(documentId: string, status: string, data?: any) {
+    emitDocumentStatus(documentId: string, contactId: string, status: string, data?: any) {
         this.server.emit('document-status-updated', {
             documentId,
+            contactId,
             status,
             ...data,
             timestamp: new Date().toISOString(),

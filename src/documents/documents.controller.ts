@@ -62,11 +62,12 @@ export class DocumentsController {
         const queuePromises = savedDocuments.map(async (doc) => {
             return this.documentQueue.add('classify-document', {
                 documentId: doc.id,
+                contactId: doc.contactId,
                 s3Path: doc.s3Path,
                 mimeType: doc.mimeType,
                 originalName: doc.originalName
             }, {
-                attempts: 3,
+                attempts: 2,
                 backoff: {
                     type: 'exponential',
                     delay: 2000
