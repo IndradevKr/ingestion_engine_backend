@@ -49,7 +49,7 @@ export class DocumentsController {
             fileSize: res.size,
             s3Path: res.key,
             contactId: body.contactId,
-            status: DocumentStatus.PROCESSING,
+            status: DocumentStatus.UPLOADED,
         }));
 
         const savedDocuments = await this.commandBus.execute(
@@ -70,7 +70,7 @@ export class DocumentsController {
                 }
 
                 console.log(`Classifying document: ${doc.originalName}`);
-                const classification = await this.geminiService.processFile(
+                const classification = await this.geminiService.classifyDocument(
                     originalFile.buffer,
                     originalFile.mimetype
                 );

@@ -59,8 +59,8 @@ export class GeminiService {
     //     }
     // }
 
-    async processFile(fileBuffer: Buffer, mimeType: string): Promise<any> {
-        console.log('Processing document with Gemini AI');
+    async classifyDocument(fileBuffer: Buffer, mimeType: string): Promise<any> {
+        console.log('Classifying document with Gemini AI');
 
         // Create a temporary file path
         const tempFilePath = os.tmpdir() + '/gemini-' + Date.now().toString();
@@ -125,8 +125,6 @@ export class GeminiService {
                     responseMimeType: 'application/json'
                 }
             });
-
-            console.log("Gemini response:", response.text);
 
             if (!response.text) {
                 throw new Error('Gemini returned empty response');
