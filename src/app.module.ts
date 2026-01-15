@@ -10,6 +10,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { MulterError } from 'multer';
 import { MulterModule } from '@nestjs/platform-express';
 import { UploadModule } from './upload/upload.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 
 @Module({
@@ -23,10 +24,10 @@ import { UploadModule } from './upload/upload.module';
     }),
     MulterModule,
     UploadModule,
+    NotificationsModule,
     ContactsModule,
     DatabaseModule,
     DocumentsModule,
-    UploadModule,
     QueuesModule
   ],
   controllers: [],

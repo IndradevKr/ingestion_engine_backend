@@ -9,6 +9,7 @@ import { UpdateDocumentClassificationCommand } from 'src/documents/commands/upda
 import { DocumentStatus } from 'src/documents/entities/documents.entity';
 import { UploadService } from 'src/upload/upload.service';
 import { BASIC_INFO_SCHEMA, EXPERIENCE_EDUCATION_SCHEMA, TEST_SCORES_SCHEMA, APPLICATION_SUMMAARY_SCHEMA } from '../../documents/constants/contact-ingestion.schema';
+import { LiveUpdatesGateway } from 'src/notifications/gateways/live-updates.gateway';
 
 interface ClassifyDocumentJobData {
     documentId: string;
@@ -25,7 +26,8 @@ export class DocumentClassificationProcessor extends WorkerHost {
         private readonly geminiService: GeminiService,
         private readonly documentService: DocumentService,
         private readonly commandBus: CommandBus,
-        private readonly uploadService: UploadService
+        private readonly uploadService: UploadService,
+        private readonly liveUpdatesGateway: LiveUpdatesGateway
     ) {
         super();
     }
@@ -34,6 +36,8 @@ export class DocumentClassificationProcessor extends WorkerHost {
         const { documentId, s3Path, mimeType, originalName } = job.data;
 
         this.logger.log(`🔄 Processing document: ${originalName} (Job ${job.id})`);
+
+        this.liveUpdatesGateway.emitDocumentStatus(documentId, 'processing', { originalName });
 
         try {
             // Download file from S3
@@ -55,8 +59,6 @@ export class DocumentClassificationProcessor extends WorkerHost {
                 processedAt: new Date().toISOString()
             };
 
-            console.log("docTypes: ", docType)
-
             // 2. If it's a relevant education document, perform extraction
             const extractableTypes = ['resume', 'transcript', 'test_score', 'certificate_of_enrollment'];
             if (extractableTypes.includes(docType.toLowerCase())) {
@@ -64,6 +66,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
                 try {
                     // Phase 1: Basic Info
                     this.logger.log(`🔍 Phase 1: Extracting basic information`);
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, 'extracting', { phase: 1, totalPhases: 4 });
                     const basicInfo = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
@@ -72,6 +75,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
 
                     // Phase 2: Experience & Education
                     this.logger.log(`🔍 Phase 2: Extracting experience and education`);
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, 'extracting', { phase: 2, totalPhases: 4 });
                     const experienceEducation = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
@@ -80,6 +84,7 @@ export class DocumentClassificationProcessor extends WorkerHost {
 
                     // Phase 3: Test Scores
                     this.logger.log(`🔍 Phase 3: Extracting test scores`);
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, 'extracting', { phase: 3, totalPhases: 4 });
                     const testScores = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
@@ -87,12 +92,12 @@ export class DocumentClassificationProcessor extends WorkerHost {
                     );
 
                     this.logger.log(`🔍 Phase 4: Extracting application summary`);
+                    this.liveUpdatesGateway.emitDocumentStatus(documentId, 'extracting', { phase: 4, totalPhases: 4 });
                     const applicationSummary = await this.geminiService.extractDocumentData(
                         fileBuffer,
                         mimeType,
                         APPLICATION_SUMMAARY_SCHEMA
                     );
-
                     // Merge results
                     extractedData = {
                         ...basicInfo,
@@ -108,7 +113,6 @@ export class DocumentClassificationProcessor extends WorkerHost {
                     this.logger.warn(`⚠️ Extraction failed for ${originalName} (classification preserved): ${extractError.message}`);
                 }
             }
-            console.log("extractedData: ", extractedData)
 
             // Update document in database
             await this.commandBus.execute(new UpdateDocumentClassificationCommand({
@@ -117,6 +121,11 @@ export class DocumentClassificationProcessor extends WorkerHost {
                 status: DocumentStatus.PARSED,
                 extractedData
             }));
+
+            this.liveUpdatesGateway.emitDocumentStatus(documentId, 'parsed', {
+                docType,
+                extractedData
+            });
 
             this.logger.log(`✅ Processed ${originalName} as ${docType}`);
 
@@ -128,15 +137,34 @@ export class DocumentClassificationProcessor extends WorkerHost {
         } catch (error) {
             this.logger.error(`❌ Classification failed for ${originalName}:`, error.message);
 
-            // Update document status to FAILED
-            await this.commandBus.execute(new UpdateDocumentClassificationCommand({
-                documentId,
-                status: DocumentStatus.FAILED,
-                extractedData: {
-                    error: error.message,
-                    failedAt: new Date().toISOString()
-                }
-            }));
+            const isRejection = error.message.includes('Document rejected');
+            const status = isRejection ? DocumentStatus.SKIPPED : DocumentStatus.FAILED;
+            const liveStatus = isRejection ? 'skipped' : 'failed';
+
+            this.logger.log(`⚠️ Attempting to update document ${documentId} to status: ${status}`);
+
+            try {
+                await this.commandBus.execute(new UpdateDocumentClassificationCommand({
+                    documentId,
+                    status,
+                    extractedData: {
+                        error: error.message,
+                        failedAt: new Date().toISOString()
+                    }
+                }));
+                this.logger.log(`✅ Document ${documentId} updated to ${status}`);
+            } catch (updateError) {
+                this.logger.error(`❌ Failed to update document ${documentId}: ${updateError.message}`);
+                // If it's a rejection, we still don't want to retry even if the status update fails
+                if (isRejection) return { documentId, status: 'error_updating_status', error: error.message };
+            }
+
+            this.liveUpdatesGateway.emitDocumentStatus(documentId, liveStatus, { error: error.message });
+
+            if (isRejection) {
+                this.logger.log(`🛑 Rejection handled, job complete.`);
+                return { documentId, status, message: error.message };
+            }
 
             throw error;
         }

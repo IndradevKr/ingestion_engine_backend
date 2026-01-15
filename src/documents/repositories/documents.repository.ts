@@ -39,7 +39,12 @@ export class DocumentsRepository implements IDocumentsRepository {
     }
 
     async update(documentId: string, updateData: Partial<Documents>): Promise<Documents | null> {
-        await this.documentsRepository.update(documentId, updateData);
-        return this.documentsRepository.findOne({ where: { id: documentId } });
+        const document = await this.documentsRepository.findOne({ where: { id: documentId } });
+        if (!document) {
+            return null;
+        }
+
+        Object.assign(document, updateData);
+        return await this.documentsRepository.save(document);
     }
 }
