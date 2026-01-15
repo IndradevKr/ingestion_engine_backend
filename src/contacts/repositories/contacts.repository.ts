@@ -19,4 +19,13 @@ export class ContactsRepository implements IContactsRepository {
     findAll(): Promise<Contacts[] | null> {
         return this.contactsRepository.find();
     }
+
+    findOne(id: string): Promise<Contacts | null> {
+        return this.contactsRepository.findOneBy({ id });
+    }
+
+    async update(id: string, data: Partial<Contacts>): Promise<Contacts | null> {
+        await this.contactsRepository.update(id, data);
+        return this.contactsRepository.findOneBy({ id });
+    }
 }
