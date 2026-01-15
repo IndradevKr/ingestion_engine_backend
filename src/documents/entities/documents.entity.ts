@@ -5,6 +5,7 @@ import { Contacts } from 'src/contacts/entities/contacts.entitiy';
 export enum DocumentStatus {
     PROCESSING = 'processing',
     UPLOADED = 'uploaded',
+    SKIPPED = 'skipped',
     PARSED = 'parsed',
     FAILED = 'failed'
 }

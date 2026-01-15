@@ -14,7 +14,7 @@ export class CreateDocumentTable1768297985330 implements MigrationInterface {
                     generationStrategy: 'uuid',
                     default: 'uuid_generate_v4()'
                 },
-                { 
+                {
                     name: "original_name",
                     type: 'varchar',
                     length: '100',
@@ -39,7 +39,7 @@ export class CreateDocumentTable1768297985330 implements MigrationInterface {
                 {
                     name: 'status',
                     type: 'enum',
-                    enum: ['processing', 'uploaded', 'parsed', 'failed'],
+                    enum: ['processing', 'uploaded', 'skipped', 'parsed', 'failed'],
                     default: "'processing'",
                     isNullable: false
                 },

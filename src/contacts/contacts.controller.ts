@@ -1,11 +1,14 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateContactsRequest } from './commands/requests/create-contacts.request';
 import { CreateContactsCommand } from './commands/create-contacts.command';
+import { UpdateContactCommand } from './commands/update-contact.command';
 import { FetchContactsQuery } from './queries/fetch-contacts.query';
+import { GetContactQuery } from './queries/get-contact.query';
 import { InjectQueue } from '@nestjs/bullmq';
 import { QUEUES } from 'src/queues/queues.constant';
 import { Queue } from 'bullmq';
+import { Contacts } from './entities/contacts.entitiy';
 
 @Controller('contacts')
 export class ContactsController {
@@ -28,5 +31,15 @@ export class ContactsController {
     @Get()
     async fetchAllContacts() {
         return this.queryBus.execute(new FetchContactsQuery())
+    }
+
+    @Get(':id')
+    async fetchContact(@Param('id') id: string) {
+        return this.queryBus.execute(new GetContactQuery(id))
+    }
+
+    @Put(':id')
+    async updateContact(@Param('id') id: string, @Body() body: Partial<Contacts>) {
+        return this.commandBus.execute(new UpdateContactCommand(id, body))
     }
 }

@@ -9,9 +9,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Documents } from './entities/documents.entity';
 import { GeminiService } from './services/gemini.service';
 import { DocumentService } from './services/document.service';
+import { BullModule } from '@nestjs/bullmq';
+import { QUEUES } from 'src/queues/queues.constant';
 
 @Module({
-  imports: [UploadModule, TypeOrmModule.forFeature([Documents])],
+  imports: [
+    UploadModule,
+    TypeOrmModule.forFeature([Documents]),
+    BullModule.registerQueue({
+      name: QUEUES.DOCUMENTS
+    })
+  ],
   controllers: [DocumentsController],
   providers: [
     UploadService,
@@ -20,6 +28,10 @@ import { DocumentService } from './services/document.service';
     DocumentService,
     ...DocumentsCommandHandlers,
     ...DocumentsQueriesHandlers,
+  ],
+  exports: [
+    GeminiService,
+    DocumentService
   ]
 })
-export class DocumentsModule {}
+export class DocumentsModule { }
