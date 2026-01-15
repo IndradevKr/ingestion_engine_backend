@@ -21,11 +21,11 @@ export class DocumentsController {
     @UseInterceptors(FilesInterceptor('files'))
     async parseFiles(
         @UploadedFiles(
-            new ParseFilePipe({
-                validators: [
-                    new FileTypeValidator({ fileType: /^(image\/(png|jpeg)|application\/pdf)$/ }),
-                ]
-            })
+            // new ParseFilePipe({
+            //     validators: [
+            //         new FileTypeValidator({ fileType: /^(image\/(png|jpeg)|application\/pdf)$/ }),
+            //     ]
+            // })
         ) files: Array<Express.Multer.File>,
         @Body() body: { contactId: string }
     ) {
