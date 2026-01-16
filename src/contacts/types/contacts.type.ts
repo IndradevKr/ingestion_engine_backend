@@ -6,7 +6,7 @@ export interface IApplicationSummaryTypePayload {
 }
 
 export interface IApplicationSummary {
-    type: string;
+    type?: string;
     values: IApplicationSummaryTypePayload;
 }
 
@@ -23,9 +23,9 @@ export interface IEducationBackground {
     degreeTitle?: string;
     courseStart?: string;
     courseEnd?: string;
-    securedGpa?: number;
-    totalGpa?: number;
-    percentage?: number;
+    securedGpa?: string;
+    totalGpa?: string;
+    percentage?: string;
 }
 
 export type TestType =  "ielts" | "toefl" | "pte";

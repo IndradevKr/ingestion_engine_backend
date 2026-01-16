@@ -1,3 +1,4 @@
+import { Address } from "../types/contacts.request.type";
 import { IApplicationSummary, IEducationBackground, ILanguageTestScores, IProfessionalExperience } from "../types/contacts.type";
 
 export interface ContactPayload {
@@ -11,6 +12,7 @@ export interface ContactPayload {
     professionalExperiences?: IProfessionalExperience[];
     educationBackgrounds?: IEducationBackground[];
     languageTestScores?: ILanguageTestScores[];
+    address?: Address;
 }
 
 export class CreateContactsCommand {

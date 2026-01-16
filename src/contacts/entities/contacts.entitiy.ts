@@ -2,7 +2,7 @@ import { IsArray, IsBoolean, IsEmail, IsNotEmpty, IsOptional, ValidateNested } f
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { type IProfessionalExperience, type IApplicationSummary, type IEducationBackground, ILanguageTestScores } from "../types/contacts.type";
 import { Type } from "class-transformer";
-import { ApplicationSummary, EducationBackground, LanguageTestScore, ProfessionalExperience } from "../types/contacts.request.type";
+import { Address, ApplicationSummary, EducationBackground, LanguageTestScore, ProfessionalExperience } from "../types/contacts.request.type";
 
 @Entity('contacts')
 export class Contacts {
@@ -35,6 +35,10 @@ export class Contacts {
 
     @Column({ nullable: true })
     addressLineOne: string;
+
+    @Column({ type: 'jsonb' })
+    @IsOptional()
+    address: Address;
 
     @IsBoolean()
     @Column()
