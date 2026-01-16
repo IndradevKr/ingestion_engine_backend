@@ -22,6 +22,10 @@ export class DocumentsRepository implements IDocumentsRepository {
         return this.documentsRepository.find();
     }
 
+    findById(id: string): Promise<Documents | null> {
+        return this.documentsRepository.findOneBy({id})
+    }
+
     async findByContactId(contactId: string): Promise<Documents[] | null> {
         const data = await this.documentsRepository.findBy({
             contactId

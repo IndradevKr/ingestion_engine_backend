@@ -75,15 +75,15 @@ export class EducationBackground {
 
     @IsString()
     @IsOptional()
-    securedGpa?: number;
+    securedGpa?: string;
 
     @IsString()
     @IsOptional()
-    totalGpa?: number;
+    totalGpa?: string;
 
     @IsString()
     @IsOptional()
-    percentage?: number;
+    percentage?: string;
 }
 
 export class ApplicationSupportingData {
@@ -106,9 +106,20 @@ export class ApplicationSupportingData {
 
 export class ApplicationSummary {
     @IsString()
-    type: string;
+    @IsOptional()
+    type?: string;
 
     @ValidateNested()
     @Type(() => ApplicationSupportingData)
     values: ApplicationSupportingData;
+}
+
+export class Address {
+    @IsString()
+    @IsOptional()
+    city?: string;
+
+    @IsString()
+    @IsOptional()
+    country?: string;
 }
