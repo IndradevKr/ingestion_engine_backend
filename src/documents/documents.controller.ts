@@ -8,6 +8,7 @@ import { DocumentStatus } from './entities/documents.entity';
 import { CreateDocumentsCommand } from './commands/create-documents.command';
 import { FindDocumentsByContactId } from './queries/find-document-by-contactId.query';
 import { QUEUES } from 'src/queues/queues.constant';
+import { FindDocumentById } from './queries/find-document-by-id.query';
 
 @Controller('documents')
 export class DocumentsController {
@@ -87,6 +88,11 @@ export class DocumentsController {
             message: `Successfully uploaded ${savedDocuments.length} document(s). Classification in progress.`,
             documents: savedDocuments
         };
+    }
+
+    @Get('detail/:id')
+    async fetchDocumentsById(@Param('id') id: string) {
+        return await this.queryBus.execute(new FindDocumentById(id))
     }
 
     @Get(':contactId')
