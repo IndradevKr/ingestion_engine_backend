@@ -90,13 +90,13 @@ export class DocumentsController {
         };
     }
 
-    @Get('detail/:id')
-    async fetchDocumentsById(@Param('id') id: string) {
-        return await this.queryBus.execute(new FindDocumentById(id))
-    }
-
-    @Get(':contactId')
+    @Get('contact/:contactId')
     async fetchDocumentsByContactId(@Param('contactId') contactId: string) {
         return await this.queryBus.execute(new FindDocumentsByContactId(contactId))
+    }
+
+    @Get(':id')
+    async fetchDocumentsById(@Param('id') id: string) {
+        return await this.queryBus.execute(new FindDocumentById(id))
     }
 }
